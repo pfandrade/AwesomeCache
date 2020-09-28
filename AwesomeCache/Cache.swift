@@ -4,6 +4,11 @@ import Foundation
 public enum CacheExpiry {
     case never
     case seconds(TimeInterval)
+    case minutes(Int)
+    case hours(Int)
+    case days(Int)
+    case months(Int)
+    case years(Int)
     case date(Foundation.Date)
 }
 
@@ -272,13 +277,30 @@ open class Cache<T: NSCoding> {
     }
 
     fileprivate func expiryDateForCacheExpiry(_ expiry: CacheExpiry) -> Date {
+        let now = Date()
+        var offsetComponents = DateComponents()
         switch expiry {
         case .never:
             return Date.distantFuture
         case .seconds(let seconds):
-            return Date().addingTimeInterval(seconds)
+            return now.addingTimeInterval(seconds)
         case .date(let date):
             return date
+        
+        case let .minutes(minutes):
+            offsetComponents.minute = minutes
+        case let .hours(hours):
+            offsetComponents.hour = hours
+        case let .days(days):
+            offsetComponents.day = days
+        case let .months(months):
+            offsetComponents.month = months
+        case let .years(years):
+            offsetComponents.year = years
         }
+        
+        let cal = NSCalendar.current
+
+        return cal.date(byAdding: offsetComponents, to: now) ?? now
     }
 }
